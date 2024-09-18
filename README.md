@@ -45,7 +45,7 @@ For Heroku:
    git push heroku main
    ```
 ## View
-<img align="center" src="https://github.com/gitmuhammedalbayrak/Turkai/scr.png" />
+<img align="center" src="https://github.com/gitmuhammedalbayrak/TurkAI/blob/main/scr.png" />
 
 ## License
 
