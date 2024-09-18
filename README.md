@@ -44,6 +44,8 @@ For Heroku:
    heroku create
    git push heroku main
    ```
+## View
+<img align="center" src="https://github.com/gitmuhammedalbayrak/Turkai/scr.png" />
 
 ## License
 
