@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Düşünen Hindi AI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #343541;
+            color: #ececf1;
+        }
+        .sidebar {
+            width: 260px;
+            background-color: #202123;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .sidebar-top {
+            padding: 10px;
+        }
+        .new-chat {
+            width: 100%;
+            padding: 12px;
+            background-color: #343541;
+            border: 1px solid #565869;
+            color: #ececf1;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+        .new-chat:hover {
+            background-color: #40414f;
+        }
+        .chat-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .chat-item {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-item:hover {
+            background-color: #2a2b32;
+        }
+        .chat-name {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .edit-button {
+            background: none;
+            border: none;
+            color: #ececf1;
+            cursor: pointer;
+            padding: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .chat-item:hover .edit-button {
+            opacity: 1;
+        }
+        .sidebar-bottom {
+            padding: 10px;
+            border-top: 1px solid #4d4d4f;
+        }
+        .profile-button, .settings-button {
+            width: 100%;
+            padding: 10px;
+            background-color: transparent;
+            border: none;
+            color: #ececf1;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+        .profile-button:hover, .settings-button:hover {
+            background-color: #2a2b32;
+        }
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 10px 20px;
+            background-color: #343541;
+            border-bottom: 1px solid #565869;
+        }
+        .chat-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .input-area {
+            display: flex;
+            padding: 10px 20px 20px;
+            background-color: #343541;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #565869;
+            border-radius: 5px;
+            background-color: #40414f;
+            color: #ececf1;
+            font-size: 16px;
+            resize: none;
+            min-height: 24px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #user-input:focus {
+            outline: none;
+            border-color: #10a37f;
+        }
+        .send-button {
+            background-color: #10a37f;
+            border: none;
+            color: #ffffff;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+        .send-button:hover {
+            background-color: #1a7f64;
+        }
+        .thinking {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #ececf1;
+        }
+        .thinking::after {
+            content: "Düşünüyor";
+            animation: thinking 1.5s infinite;
+        }
+        @keyframes thinking {
+            0% { content: "Düşünüyor"; }
+            33% { content: "Düşünüyor."; }
+            66% { content: "Düşünüyor.."; }
+            100% { content: "Düşünüyor..."; }
+        }
+        .message {
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #343541;
+        }
+        .ai-message {
+            background-color: #444654;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <button class="new-chat" onclick="newChat()">+ Yeni chat</button>
+        </div>
+        <div class="chat-list" id="chat-list">
+            <!-- Chat geçmişleri buraya eklenecek -->
+        </div>
+        <div class="sidebar-bottom">
+            <button class="profile-button">👤 Profil</button>
+            <button class="settings-button">⚙️ Ayarlar</button>
+        </div>
+    </div>
+    <div class="main-content">
+        <div class="chat-header">
+            <h2 id="current-chat-name">Yeni Chat</h2>
+        </div>
+        <div class="chat-area" id="chat-area"></div>
+        <div class="input-area">
+            <textarea id="user-input" placeholder="Mesajınızı buraya yazın..." rows="1"></textarea>
+            <button class="send-button" onclick="sendMessage()">Gönder</button>
+        </div>
+        <div class="thinking" id="thinking"></div>
+    </div>
+
+    <script>
+        let currentChatId = Date.now();
+        let chats = {};
+
+        function newChat() {
+            currentChatId = Date.now();
+            chats[currentChatId] = {
+                name: `Yeni Konuşma ${Object.keys(chats).length + 1}`,
+                messages: []
+            };
+            document.getElementById('chat-area').innerHTML = '';
+            document.getElementById('current-chat-name').textContent = chats[currentChatId].name;
+            updateChatList();
+        }
+
+        function updateChatList() {
+            const chatList = document.getElementById('chat-list');
+            chatList.innerHTML = '';
+            for (let chatId in chats) {
+                const chatItem = document.createElement('div');
+                chatItem.className = 'chat-item';
+                chatItem.innerHTML = `
+                    <span class="chat-name">${chats[chatId].name}</span>
+                    <button class="edit-button" onclick="editChatName(${chatId})">✎</button>
+                `;
+                chatItem.onclick = (e) => {
+                    if (e.target.className !== 'edit-button') {
+                        loadChat(chatId);
+                    }
+                };
+                chatList.appendChild(chatItem);
+            }
+        }
+
+        function editChatName(chatId) {
+            const newName = prompt("Yeni konuşma ismini girin:", chats[chatId].name);
+            if (newName && newName.trim() !== "") {
+                chats[chatId].name = newName.trim();
+                updateChatList();
+                if (chatId == currentChatId) {
+                    document.getElementById('current-chat-name').textContent = newName.trim();
+                }
+            }
+        }
+
+        function loadChat(chatId) {
+            currentChatId = chatId;
+            document.getElementById('chat-area').innerHTML = '';
+            document.getElementById('current-chat-name').textContent = chats[chatId].name;
+            chats[chatId].messages.forEach(message => {
+                addMessageToChat(message.sender, message.text);
+            });
+        }
+
+        function addMessageToChat(sender, text) {
+            const chatArea = document.getElementById('chat-area');
+            const messageClass = sender === 'user' ? 'user-message' : 'ai-message';
+            const messageSender = sender === 'user' ? 'Siz' : 'TurkAI';
+            chatArea.innerHTML += `<div class="message ${messageClass}"><strong>${messageSender}:</strong> ${text}</div>`;
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const thinking = document.getElementById('thinking');
+
+            if (input.value.trim() !== '') {
+                const userMessage = input.value.trim();
+                addMessageToChat('user', userMessage);
+                chats[currentChatId].messages.push({sender: 'user', text: userMessage});
+                input.value = '';
+                
+                thinking.style.display = 'block';
+
+                setTimeout(() => {
+                    thinking.style.display = 'none';
+                    const aiMessage = "Hmm...";
+                    addMessageToChat('ai', aiMessage);
+                    chats[currentChatId].messages.push({sender: 'ai', text: aiMessage});
+                }, 3000);
+            }
+        }
+
+        document.getElementById('user-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Textarea'nın yüksekliğini otomatik ayarlama
+        document.getElementById('user-input').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // İlk sohbeti başlat
+        newChat();
+    </script>
+</body>
+</html>
