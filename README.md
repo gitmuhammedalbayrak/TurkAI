@@ -1,11 +1,3 @@
-**Description:**
-
-This project, developed with Flask and Python, is an AI emulator or AI satirist inspired by Nasreddin Hodja's "Parrot and Turkey" fable: TurkAI.
-
----
-
-**README.md:**
-
 # Thinking Turkey AI
 
 This project is an experimental AI chat application with an interface similar to ChatGPT. It is inspired by the humor of Nasreddin Hodja's "Turkey and Parrot" fable.
